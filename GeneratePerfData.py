@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 "Generate test data for ONNX Runtime onnxruntime_perf_test tool."
 
+import os
 import argparse
 
 import onnx
@@ -13,25 +14,24 @@ def _main():
 
     parser = argparse.ArgumentParser("Generate random test input for ONNX model")
     parser.add_argument("--model", required=True, help="ONNX model file")
-    parser.add_argument("--output", default=None,
-                        help="Output protobuf file. Default is [model].pb")
+    parser.add_argument("--output", required=True, help="Output data directory")
     args = parser.parse_args()
 
-    output_path = args.output
-    if output_path is None:
-        output_path = args.model[:-4] + "pb"  # replace .onnx with .pb
+    if not os.path.exists(args.output):
+        os.mkdir(args.output)
 
-    print("Output:", output_path)
-    with open(output_path, 'wb') as outfile:
-        sess = onnxruntime.InferenceSession(args.model)
-        for inp in sess.get_inputs():
+    sess = onnxruntime.InferenceSession(args.model)
+
+    for inp in sess.get_inputs():
             # FIXME: allow user to specify omitted dimensions instead of always using 1
             shape = [s if isinstance(s, int) and s > 0 else 1 for s in inp.shape]
             # FIXME: use correct type based on inp.type instead of np.float32
             data = np.ones(shape, dtype=np.float32)
-            print("    %s %s %s" % (inp.name, inp.type, shape))
             tensor = onnx.numpy_helper.from_array(data, inp.name)
-            outfile.write(tensor.SerializeToString())
+            path = os.path.join(args.output, inp.name + ".pb")
+            print("%s: %s/%s %s" % (path, inp.type, data.dtype, data.shape))
+            with open(path, 'wb') as outfile:
+                outfile.write(tensor.SerializeToString())
 
 
 if __name__ == "__main__":
