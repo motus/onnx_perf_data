@@ -25,7 +25,9 @@ def _main():
     with open(output_path, 'wb') as outfile:
         sess = onnxruntime.InferenceSession(args.model)
         for inp in sess.get_inputs():
+            # FIXME: allow user to specify omitted dimensions instead of always using 1
             shape = [s if isinstance(s, int) and s > 0 else 1 for s in inp.shape]
+            # FIXME: use correct type based on inp.type instead of np.float32
             data = np.ones(shape, dtype=np.float32)
             print("    %s %s %s" % (inp.name, inp.type, shape))
             tensor = onnx.numpy_helper.from_array(data, inp.name)
