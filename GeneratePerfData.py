@@ -22,7 +22,7 @@ https://github.com/microsoft/onnxruntime/tree/master/onnxruntime/test/perftest
 
 FIXME: The script currently breaks if some inputs have special characters like `/` or `:`
 in their names (this is the case for models converted as is from TensorFlow).
-TODO: generate random data instead of all 1s; allow user to specify the distribution.
+TODO: allow user to specify the distribution if input data, incl. all 0s or 1s.
 """
 
 import os
@@ -50,7 +50,7 @@ def _main():
             # TODO: allow user to specify omitted dimensions instead of always using 1
             shape = [s if isinstance(s, int) and s > 0 else 1 for s in inp.shape]
             # FIXME: use correct type based on inp.type instead of np.float32
-            data = np.ones(shape, dtype=np.float32)
+            data = np.float32(np.random.randn(*shape))
             tensor = onnx.numpy_helper.from_array(data, inp.name)
             path = os.path.join(args.output, inp.name + ".pb")
             print("%s: %s/%s %s" % (path, inp.type, data.dtype, data.shape))
