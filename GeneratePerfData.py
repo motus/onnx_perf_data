@@ -47,15 +47,16 @@ def _main():
     sess = onnxruntime.InferenceSession(args.model)
 
     for inp in sess.get_inputs():
-            # TODO: allow user to specify omitted dimensions instead of always using 1
-            shape = [s if isinstance(s, int) and s > 0 else 1 for s in inp.shape]
-            # FIXME: use correct type based on inp.type instead of np.float32
-            data = np.float32(np.random.randn(*shape))
-            tensor = onnx.numpy_helper.from_array(data, inp.name)
-            path = os.path.join(args.output, inp.name + ".pb")
-            print("%s: %s/%s %s" % (path, inp.type, data.dtype, data.shape))
-            with open(path, 'wb') as outfile:
-                outfile.write(tensor.SerializeToString())
+        # TODO: allow user to specify omitted dimensions instead of always using 1
+        shape = [s if isinstance(s, int) and s > 0 else 1 for s in inp.shape]
+        # FIXME: use correct type based on inp.type instead of np.float32
+        data = np.float32(np.random.randn(*shape))
+        tensor = onnx.numpy_helper.from_array(data, inp.name)
+        fname = inp.name.replace("/", "!").replace(":", "%") + ".pb"
+        path = os.path.join(args.output, fname)
+        print("%s: %s/%s %s" % (path, inp.type, data.dtype, data.shape))
+        with open(path, 'wb') as outfile:
+            outfile.write(tensor.SerializeToString())
 
 
 if __name__ == "__main__":
