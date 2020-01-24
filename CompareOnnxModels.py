@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import sys
+import argparse
 
 import numpy as np
 import onnxruntime as ort
@@ -30,5 +30,14 @@ def compare_models(models, tolerance=1.0e-4):
         print("All models produce identical results!")
 
 
+def _main():
+    parser = argparse.ArgumentParser("Check if several ONNX models produce identical results")
+    parser.add_argument("models", nargs="+", help="ONNX model files")
+    parser.add_argument("--tolerance", type=float, default=1.0e-4,
+                        help="Tolerance when comparing the models' outputs")
+    args = parser.parse_args()
+    compare_models(args.models, args.tolerance)
+
+
 if __name__ == "__main__":
-    compare_models(sys.argv[1:])
+    _main()
