@@ -37,7 +37,7 @@ def _main():
                         help="Tolerance when comparing the models' outputs")
     args = parser.parse_args()
     match = compare_models(args.onnx, args.coreml, args.tolerance)
-    print("Models %s match!" % ["DO", "DO NOT"][int(match)])
+    print("Models %s match!" % {False: "DO NOT", True: "DO"}[match])
 
 
 if __name__ == "__main__":
