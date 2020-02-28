@@ -22,11 +22,24 @@ def compare_models(model_file_onnx, model_file_coreml, tolerance=1.0e-4):
     outputs_onnx = model_onnx.run(None, inputs)  # list of outputs without names
     outputs_coreml = model_coreml.predict(inputs, useCPUOnly=True)  # a dictionary with names
 
-    for (out_onnx, out_coreml) in zip(outputs_onnx, outputs_coreml.values()):
-        if (np.abs(out_onnx - out_coreml) > tolerance).any():
-            return False
+    match = True
+    for (out_onnx, (name, out_coreml)) in zip(outputs_onnx, outputs_coreml.items()):
+        print("%s: ONNX %s:%s, CoreML %s:%s :: " % (
+            name, out_onnx.dtype, out_onnx.shape, out_coreml.dtype, out_coreml.shape), end="")
+        diff = (np.abs(out_onnx - out_coreml) > tolerance).flatten().sum()
+        if diff:
+            match = False
+            k = 5
+            print("%d out of %d values (%.2f%%) DO NOT match!" % (
+                diff, out_onnx.size, diff * 100.0 / out_onnx.size))
+            print("%s[:%d] DIFF ::\n  ONNX = %s\nCoreML = %s" % (
+                name, k, out_onnx.flatten()[:k], out_coreml.flatten()[:k]))
+            print("%s[-%d:] DIFF ::\n  ONNX = %s\nCoreML = %s" % (
+                name, k, out_onnx.flatten()[-k:], out_coreml.flatten()[-k:]))
+        else:
+            print("Match!")
 
-    return True
+    return match
 
 
 def _main():
