@@ -7,7 +7,7 @@ import onnxruntime
 import coremltools
 
 
-def compare_models(model_file_onnx, model_file_coreml, tolerance=1.0e-4):
+def compare_models(model_file_onnx, model_file_coreml, tolerance=1.0e-6):
     "Check if ONNX and CoreML models produce identical results."
 
     model_onnx = onnxruntime.InferenceSession(model_file_onnx)
@@ -46,7 +46,7 @@ def _main():
     parser = argparse.ArgumentParser("Check if ONNX and CoreML models produce identical results")
     parser.add_argument("--onnx", required=True, help="ONNX model file")
     parser.add_argument("--coreml", required=True, help="CoreML model file")
-    parser.add_argument("--tolerance", type=float, default=1.0e-4,
+    parser.add_argument("--tolerance", type=float, default=1.0e-6,
                         help="Tolerance when comparing the models' outputs")
     args = parser.parse_args()
     match = compare_models(args.onnx, args.coreml, args.tolerance)
