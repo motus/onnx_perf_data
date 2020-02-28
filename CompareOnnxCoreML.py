@@ -19,10 +19,10 @@ def compare_models(model_file_onnx, model_file_coreml, tolerance=1.0e-4):
             *[s if isinstance(s, int) and s > 0 else 1 for s in inp.shape]))
         for inp in model_onnx.get_inputs()}
 
-    outputs_onnx = model_onnx.run(None, inputs)
-    outputs_coreml = model_coreml.predict(inputs, useCPUOnly=True)
+    outputs_onnx = model_onnx.run(None, inputs)  # list of outputs without names
+    outputs_coreml = model_coreml.predict(inputs, useCPUOnly=True)  # a dictionary with names
 
-    for (out_onnx, out_coreml) in zip(outputs_onnx, outputs_coreml):
+    for (out_onnx, out_coreml) in zip(outputs_onnx, outputs_coreml.values()):
         if (np.abs(out_onnx - out_coreml) > tolerance).any():
             return False
 
@@ -31,8 +31,8 @@ def compare_models(model_file_onnx, model_file_coreml, tolerance=1.0e-4):
 
 def _main():
     parser = argparse.ArgumentParser("Check if ONNX and CoreML models produce identical results")
-    parser.add_argument("--onnx", help="ONNX model file")
-    parser.add_argument("--coreml", help="CoreML model file")
+    parser.add_argument("--onnx", required=True, help="ONNX model file")
+    parser.add_argument("--coreml", required=True, help="CoreML model file")
     parser.add_argument("--tolerance", type=float, default=1.0e-4,
                         help="Tolerance when comparing the models' outputs")
     args = parser.parse_args()
