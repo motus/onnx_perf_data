@@ -23,9 +23,13 @@ def compare_models(model_files, tolerance=1.0e-6):
         for j in range(i + 1, len(outputs)):
             for k in keys:
                 (o1, o2) = (outputs[i][k], outputs[j][k])
-                if (np.abs(o1 - o2) > tolerance).any():
-                    print("models %s and %s don't match" % (model_files[i], model_files[j]))
+                diff = (np.abs(o1 - o2) > tolerance).flatten().sum()
+                if diff:
                     match = False
+                    print("Models %s and %s mismatch: %d/%d (%.2f%%)" % (
+                        model_files[i], model_files[j], diff, o1.size, diff * 100.0 / o1.size))
+                else:
+                    print("Models %s and %s MATCH!" % (model_files[i], model_files[j]))
 
     if match:
         print("All models produce identical results!")
