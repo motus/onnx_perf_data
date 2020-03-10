@@ -7,7 +7,8 @@ import onnxruntime
 import coremltools
 
 
-def compare_models(model_file_onnx, model_file_coreml, tolerance=1.0e-6):
+def compare_models(model_file_onnx, model_file_coreml,
+                   tolerance=1.0e-6, print_stats=True, n_diff=5):
     "Check if ONNX and CoreML models produce identical results."
 
     model_onnx = onnxruntime.InferenceSession(model_file_onnx)
@@ -29,13 +30,14 @@ def compare_models(model_file_onnx, model_file_coreml, tolerance=1.0e-6):
         diff = (np.abs(out_onnx - out_coreml) > tolerance).flatten().sum()
         if diff:
             match = False
-            k = 5
-            print("%d out of %d values (%.2f%%) DO NOT match!" % (
-                diff, out_onnx.size, diff * 100.0 / out_onnx.size))
-            print("%s[:%d] DIFF ::\n  ONNX = %s\nCoreML = %s" % (
-                name, k, out_onnx.flatten()[:k], out_coreml.flatten()[:k]))
-            print("%s[-%d:] DIFF ::\n  ONNX = %s\nCoreML = %s" % (
-                name, k, out_onnx.flatten()[-k:], out_coreml.flatten()[-k:]))
+            if print_stats:
+                print("%d out of %d values (%.2f%%) DO NOT match!" % (
+                    diff, out_onnx.size, diff * 100.0 / out_onnx.size))
+            if n_diff > 0:
+                print("%s[:%d] DIFF ::\n  ONNX = %s\nCoreML = %s" % (
+                    name, n_diff, out_onnx.flatten()[:n_diff], out_coreml.flatten()[:n_diff]))
+                print("%s[-%d:] DIFF ::\n  ONNX = %s\nCoreML = %s" % (
+                    name, n_diff, out_onnx.flatten()[-n_diff:], out_coreml.flatten()[-n_diff:]))
         else:
             print("Match!")
 
@@ -48,8 +50,12 @@ def _main():
     parser.add_argument("--coreml", required=True, help="CoreML model file")
     parser.add_argument("--tolerance", type=float, default=1.0e-6,
                         help="Tolerance when comparing the models' outputs")
+    parser.add_argument("--no-stats", action="store_false",
+                        help="Disable printing stats on values that don't match")
+    parser.add_argument("--diff", type=int, default=0,
+                        help="Print diff on first and last N values that don't match")
     args = parser.parse_args()
-    match = compare_models(args.onnx, args.coreml, args.tolerance)
+    match = compare_models(args.onnx, args.coreml, args.tolerance, args.no_stats, args.diff)
     print("Models %s match!" % {False: "DO NOT", True: "DO"}[match])
 
 
