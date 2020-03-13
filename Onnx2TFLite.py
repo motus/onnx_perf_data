@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 "Functions to convert ONNX mdoel file to TFLite and to test TFLite models on random data"
 
+import os
+import argparse
+
 import numpy
 import onnx
 import onnx_tf
@@ -42,9 +45,28 @@ def test(fname_tflite):
             for out in interpreter.get_output_details()}
 
 
-if __name__ == "__main__":
-    fname_onnx = "devel/models/Phasen/version201/opset10/trained.onnx"
-    fname_tf = "devel/models/Phasen/version201/opset10/trained_tf.pb"
-    fname_tflite = "devel/models/Phasen/version201/opset10/trained_tf.tflite"
-    convert(fname_onnx, fname_tf, fname_tflite)
+def _main():
+
+    parser = argparse.ArgumentParser("Convert ONNX model to TF and TFLite")
+    parser.add_argument("--onnx", required=True, help="Input ONNX model file")
+    parser.add_argument("--tf", default=None, help="Output TensorFlow model file")
+    parser.add_argument("--tflite", default=None, help="Output TensorFlow Lite model file")
+    args = parser.parse_args()
+
+    fname_tf = args.tf
+    if not fname_tf:
+        fname_tf = os.path.splitext(args.onnx)[0] + ".pb"
+
+    fname_tflite = args.tflite
+    if not fname_tflite:
+        fname_tflite = os.path.splitext(fname_tf)[0] + ".tflite"
+
+    convert(args.onnx, fname_tf, fname_tflite)
     test(fname_tflite)
+
+    print("\nSuccess! Converted:\n  ONNX: %s\n to TF: %s\nTFLite: %s"
+          % (args.onnx, fname_tf, fname_tflite))
+
+
+if __name__ == "__main__":
+    _main()
