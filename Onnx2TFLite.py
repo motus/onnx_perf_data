@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+"Functions to convert ONNX mdoel file to TFLite and to test TFLite models on random data"
 
 import numpy
 import onnx
@@ -24,7 +26,7 @@ def convert(fname_onnx, fname_tf, fname_tflite):
         file_tflite.write(tflite_model)
 
 
-def _test(fname_tflite):
+def test(fname_tflite):
     "Read a TensorFlow lite model froam a file and evaluate it with some random input"
 
     interpreter = tf.lite.Interpreter(fname_tflite)
@@ -45,3 +47,4 @@ if __name__ == "__main__":
     fname_tf = "devel/models/Phasen/version201/opset10/trained_tf.pb"
     fname_tflite = "devel/models/Phasen/version201/opset10/trained_tf.tflite"
     convert(fname_onnx, fname_tf, fname_tflite)
+    test(fname_tflite)
