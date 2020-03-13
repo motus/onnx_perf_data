@@ -2,6 +2,7 @@
 "Functions to convert ONNX mdoel file to TFLite and to test TFLite models on random data"
 
 import os
+import time
 import argparse
 
 import numpy
@@ -35,14 +36,20 @@ def test(fname_tflite):
     interpreter = tf.lite.Interpreter(fname_tflite)
     interpreter.allocate_tensors()
 
+    inputs = {}
     for inp in interpreter.get_input_details():
         input_data = numpy.float32(numpy.random.randn(*inp['shape']))
         interpreter.set_tensor(inp['index'], input_data)
+        inputs[inp["name"]] = input_data
 
+    ts = time.time()
     interpreter.invoke()
+    ts = time.time() - ts
 
-    return {out['name']: interpreter.get_tensor(out['index'])
-            for out in interpreter.get_output_details()}
+    outputs = {out['name']: interpreter.get_tensor(out['index'])
+               for out in interpreter.get_output_details()}
+
+    return (ts, inputs, outputs)
 
 
 def _main():
@@ -66,9 +73,11 @@ def _main():
           % (args.onnx, fname_tf, fname_tflite))
 
     print("Testing TFLite inference...")
-    outputs = test(fname_tflite)
-    print("\nTFLite inference tested! Output shapes:\n",
-          {key: val.shape for (key, val) in outputs.items()})
+    (ts, inputs, outputs) = test(fname_tflite)
+    print("TFLite inference time: %f\n Input shapes: %s\nOutput shapes: %s\n" % (
+        ts,
+        {key: val.shape for (key, val) in inputs.items()},
+        {key: val.shape for (key, val) in outputs.items()}))
 
 
 if __name__ == "__main__":
