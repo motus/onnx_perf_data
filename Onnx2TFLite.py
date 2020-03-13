@@ -62,10 +62,13 @@ def _main():
         fname_tflite = os.path.splitext(fname_tf)[0] + ".tflite"
 
     convert(args.onnx, fname_tf, fname_tflite)
-    test(fname_tflite)
-
-    print("\nSuccess! Converted:\n  ONNX: %s\n to TF: %s\nTFLite: %s"
+    print("\nSuccess! Converted:\n  ONNX: %s\n to TF: %s\nTFLite: %s\n"
           % (args.onnx, fname_tf, fname_tflite))
+
+    print("Testing TFLite inference...")
+    outputs = test(fname_tflite)
+    print("\nTFLite inference tested! Output shapes:\n",
+          {key: val.shape for (key, val) in outputs.items()})
 
 
 if __name__ == "__main__":
