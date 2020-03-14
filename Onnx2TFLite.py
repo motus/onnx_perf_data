@@ -24,6 +24,7 @@ def convert(fname_onnx, fname_tf, fname_tflite):
 
     converter = tf.lite.TFLiteConverter.from_frozen_graph(
         fname_tf, model_inputs, model_outputs)
+    converter.optimizations = [tf.lite.Optimize.DEFAULT]
     tflite_model = converter.convert()
 
     with open(fname_tflite, "wb") as file_tflite:
