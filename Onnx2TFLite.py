@@ -24,10 +24,8 @@ def convert(fname_onnx, fname_tf, fname_tflite):
     model_prep_tf = onnx_tf.backend.prepare(model_onnx)
     model_prep_tf.export_graph(fname_tf)
 
-    # FIXME: works for Phasen only!
-    # Need to infer inputs and outputs for other models
-    model_inputs = ["input"]
-    model_outputs = ["output"]
+    model_inputs = [node.name for node in model_onnx.graph.input]
+    model_outputs = [node.name for node in model_onnx.graph.output]
 
     converter = tf.lite.TFLiteConverter.from_frozen_graph(
         fname_tf, model_inputs, model_outputs)
