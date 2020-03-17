@@ -8,14 +8,19 @@ import argparse
 import numpy
 import onnx
 import onnx_tf
-import tensorflow as tf
+
+# onnx_tf supports TF 1.* Frozen Graph only
+try:
+    import tensorflow.compat.v1 as tf
+    tf.disable_v2_behavior()
+except:
+    import tensorflow as tf
 
 
 def convert(fname_onnx, fname_tf, fname_tflite):
     "Reead an ONNX model from a file and convert it to TensorFlow and TensorFlow Lite models"
 
     model_onnx = onnx.load(fname_onnx)
-
     model_prep_tf = onnx_tf.backend.prepare(model_onnx)
     model_prep_tf.export_graph(fname_tf)
 
@@ -59,7 +64,7 @@ def _main():
 
     parser = argparse.ArgumentParser("Convert ONNX model to TF and TFLite")
     parser.add_argument("--onnx", required=True, help="Input ONNX model file")
-    parser.add_argument("--tf", default=None, help="Output TensorFlow model file")
+    parser.add_argument("--tf", default=None, help="Output TensorFlow frozen graph file")
     parser.add_argument("--tflite", default=None, help="Output TensorFlow Lite model file")
     args = parser.parse_args()
 
