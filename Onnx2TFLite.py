@@ -27,9 +27,8 @@ def convert(fname_onnx, fname_tf, fname_tflite):
     model_inputs = [node.name for node in model_onnx.graph.input]
     model_outputs = [node.name for node in model_onnx.graph.output]
 
-    converter = tf.lite.TFLiteConverter.from_frozen_graph(
-        fname_tf, model_inputs, model_outputs)
-    converter.optimizations = [tf.lite.Optimize.DEFAULT]
+    converter = tf.lite.TFLiteConverter.from_frozen_graph(fname_tf, model_inputs, model_outputs)
+    converter.optimizations = [tf.lite.Optimize.OPTIMIZE_FOR_LATENCY]
     tflite_model = converter.convert()
 
     with open(fname_tflite, "wb") as file_tflite:
