@@ -13,7 +13,7 @@ import onnx_tf
 try:
     import tensorflow.compat.v1 as tf
     tf.disable_v2_behavior()
-except:
+except ModuleNotFoundError:
     import tensorflow as tf
 
 
