@@ -17,8 +17,8 @@ except ModuleNotFoundError:
     import tensorflow as tf
 
 
-def convert(fname_onnx, fname_tf, fname_tflite):
-    "Reead an ONNX model from a file and convert it to TensorFlow and TensorFlow Lite models"
+def convert_onnx2tf(fname_onnx, fname_tf):
+    "Read an ONNX model from a file and convert it to TensorFlow"
 
     model_onnx = onnx.load(fname_onnx)
     model_prep_tf = onnx_tf.backend.prepare(model_onnx)
@@ -26,6 +26,12 @@ def convert(fname_onnx, fname_tf, fname_tflite):
 
     model_inputs = [node.name for node in model_onnx.graph.input]
     model_outputs = [node.name for node in model_onnx.graph.output]
+
+    return (model_inputs, model_outputs)
+
+
+def convert_tf2tflite(fname_tf, fname_tflite, model_inputs, model_outputs):
+    "Read a TF frozen graph model from a file and convert it to TensorFlow Lite"
 
     converter = tf.lite.TFLiteConverter.from_frozen_graph(fname_tf, model_inputs, model_outputs)
     converter.optimizations = [tf.lite.Optimize.OPTIMIZE_FOR_LATENCY]
@@ -73,7 +79,8 @@ def _main():
     if not fname_tflite:
         fname_tflite = os.path.splitext(fname_tf)[0] + ".tflite"
 
-    convert(args.onnx, fname_tf, fname_tflite)
+    (model_inputs, model_outputs) = convert_onnx2tf(args.onnx, fname_tf)
+    convert_tf2tflite(fname_tf, fname_tflite, model_inputs, model_outputs)
     print("\nSuccess! Converted:\n  ONNX: %s\n to TF: %s\nTFLite: %s\n"
           % (args.onnx, fname_tf, fname_tflite))
 
