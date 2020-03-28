@@ -65,7 +65,7 @@ def test(fname_tflite):
 
 def _main():
 
-    parser = argparse.ArgumentParser("Convert ONNX model to TF and TFLite")
+    parser = argparse.ArgumentParser(description="Convert ONNX model to TF and TFLite")
     parser.add_argument("--onnx", required=True, help="Input ONNX model file")
     parser.add_argument("--tf", default=None, help="Output TensorFlow frozen graph file")
     parser.add_argument("--tflite", default=None, help="Output TensorFlow Lite model file")

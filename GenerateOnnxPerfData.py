@@ -36,7 +36,7 @@ import numpy as np
 
 def _main():
 
-    parser = argparse.ArgumentParser("Generate random test input for ONNX model")
+    parser = argparse.ArgumentParser(description="Generate random test input for ONNX model")
     parser.add_argument("--model", required=True, help="ONNX model file")
     parser.add_argument("--output", required=True, help="Output data directory")
     args = parser.parse_args()
@@ -51,9 +51,10 @@ def _main():
         shape = [s if isinstance(s, int) and s > 0 else 1 for s in inp.shape]
         # FIXME: use correct type based on inp.type instead of np.float32
         data = np.float32(np.random.randn(*shape))
-        tensor = onnx.numpy_helper.from_array(data, inp.name)
+        name = inp.name[:-2] if inp.name[-2:] == ":0" else inp.name
+        tensor = onnx.numpy_helper.from_array(data, name)
         path = os.path.join(args.output, "input_%03d.pb" % i)
-        print("%s: %s %s/%s %s" % (path, inp.name, inp.type, data.dtype, data.shape))
+        print("%s: %s %s/%s %s" % (path, name, inp.type, data.dtype, data.shape))
         with open(path, 'wb') as outfile:
             outfile.write(tensor.SerializeToString())
 

@@ -38,7 +38,8 @@ def compare_models(model_files, tolerance=1.0e-6):
 
 
 def _main():
-    parser = argparse.ArgumentParser("Check if several CoreML models produce identical results")
+    parser = argparse.ArgumentParser(
+        description="Check if several CoreML models produce identical results")
     parser.add_argument("models", nargs="+", help="CoreML model files")
     parser.add_argument("--tolerance", type=float, default=1.0e-6,
                         help="Tolerance when comparing the models' outputs")

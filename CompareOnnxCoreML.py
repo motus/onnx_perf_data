@@ -45,7 +45,8 @@ def compare_models(model_file_onnx, model_file_coreml,
 
 
 def _main():
-    parser = argparse.ArgumentParser("Check if ONNX and CoreML models produce identical results")
+    parser = argparse.ArgumentParser(
+        description="Check if ONNX and CoreML models produce identical results")
     parser.add_argument("--onnx", required=True, help="ONNX model file")
     parser.add_argument("--coreml", required=True, help="CoreML model file")
     parser.add_argument("--tolerance", type=float, default=1.0e-6,
