@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
-"""
-Generate test data for Qualcomm SNPE benchmarking and quantization
+r"""
+Generate test data for Qualcomm SNPE benchmarking and quantization.
+
+To run DLC model with the data, do e.g.
+
+  snpe-net-run \
+      --container model.dlc \
+      --input_list input-list.txt
+
+Where input-list.txt is from the --txt option of this script.
 """
 
 import os
