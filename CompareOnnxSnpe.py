@@ -59,7 +59,13 @@ def _main():
         outputs = sess.run(list(output_names or output_shapes), inputs)
 
         for (out_onnx, (name, shape)) in zip(outputs, output_shapes.items()):
-            fname = "%s/Result_%d/%s.raw" % (args.output, sample_num, name)
+
+            fname_onnx = "%s/Result_%d/%s.onnx_raw" % (args.output_data, sample_num, name)
+            with open(fname_onnx, 'wb') as binary_file:
+                binary_file.write(out_onnx.tobytes())
+            continue
+
+            fname = "%s/Result_%d/%s.raw" % (args.output_data, sample_num, name)
             if os.path.exists(fname):
                 out_snpe = np.frombuffer(
                     open(fname, "rb").read(), dtype=np.float32).reshape(shape)
