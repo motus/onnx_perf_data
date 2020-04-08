@@ -59,7 +59,7 @@ def _main():
         outputs = sess.run(list(output_names or output_shapes), inputs)
 
         for (out_onnx, (name, shape)) in zip(outputs, output_shapes.items()):
-            fname = "%s/Result_%d/%s.raw" % (args.output, sample_num, name)
+            fname = "%s/Result_%d/%s.raw" % (args.output_data, sample_num, name)
             if os.path.exists(fname):
                 out_snpe = np.frombuffer(
                     open(fname, "rb").read(), dtype=np.float32).reshape(shape)
