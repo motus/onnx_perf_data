@@ -40,6 +40,10 @@ def _main():
     parser.add_argument("--input_list", required=True,
                         help="SNPE map of input tensors and data."
                              " (See `snpe-net-run --input_list`)")
+    parser.add_argument("--stats", action="store_true",
+                        help="Disable printing stats on values that don't match")
+    parser.add_argument("--diff", type=int, default=0,
+                        help="Print diff on first and last N values that don't match")
     parser.add_argument("--tolerance", type=float, default=1.0e-6,
                         help="Data matching tolerance")
 
@@ -59,7 +63,7 @@ def _main():
     i = 0
     for line in open(args.input_list):
 
-        if line[:1] == "#":
+        if len(line) == 0 or line[:1] == "#":
             continue
 
         inputs = dict(pair.strip().split(":=") for pair in line.split(" "))
@@ -71,14 +75,34 @@ def _main():
 
         interpreter.invoke()
 
+        total_diff = 0
+        total_size = 0
         for out in interpreter.get_output_details():
             name = out['name']
             fname = "%s/Result_%d/%s.raw" % (
                 args.output_dir, i, output_names.get(name, name + ":0"))
             data = interpreter.get_tensor(out['index'])
             test_data = _numpy_from_file(fname, numpy.float32, out['shape'])
-            print("- %s: %s == %s..." % (name, data.shape, data.flatten()[:5]))
-            print("  %s: %s == %s..." % (name, test_data.shape, test_data.flatten()[:5]))
+
+            diff = (numpy.abs(data - test_data) > args.tolerance).flatten().sum()
+            total_diff += diff
+            total_size += data.size
+
+            if diff > 0 and args.diff > 0:
+                n = args.diff
+                print("\n%s %s: %s" % (name, data.shape, fname))
+                print("  SNPE[:%d] : %s..." % (n, data.flatten()[:n]))
+                print("TFLite[:%d] : %s..." % (n, test_data.flatten()[:n]))
+                print("  SNPE[-%d:]: ...%s" % (n, data.flatten()[-n:]))
+                print("TFLite[-%d:]: ...%s" % (n, test_data.flatten()[-n:]))
+
+        if total_diff == 0:
+            print("\n%3d: TFLite and SNPE outputs MATCH!" % i)
+        else:
+            print("\n%3d: TFLite and SNPE outputs DO NOT match!" % i)
+            if args.stats:
+                print("%d out of %d values (%.2f%%) DO NOT match!" % (
+                    total_diff, total_size, total_diff * 100.0 / total_size))
 
         i += 1
 
