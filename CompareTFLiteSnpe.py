@@ -88,9 +88,11 @@ def _main():
             total_diff += diff
             total_size += data.size
 
-            if diff > 0 and args.diff > 0:
+            if args.diff > 0:
                 n = args.diff
-                print("\n%s %s: %s" % (name, data.shape, fname))
+                print("\n%smatch: %s %s: %s (%6.2f%% match)" % (
+                    "NO " if diff > 0 else "", name, data.shape, fname,
+                    100 - diff * 100.0 / data.size))
                 print("  SNPE[:%d] : %s..." % (n, data.flatten()[:n]))
                 print("TFLite[:%d] : %s..." % (n, test_data.flatten()[:n]))
                 print("  SNPE[-%d:]: ...%s" % (n, data.flatten()[-n:]))
