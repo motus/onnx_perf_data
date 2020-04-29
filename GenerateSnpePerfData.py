@@ -18,14 +18,20 @@ Where input-list.txt is from the --txt option of this script.
 import os
 import argparse
 
-import onnxruntime
 import numpy as np
+try:
+    import tensorflow.compat.v1 as tf
+    tf.disable_v2_behavior()
+except:
+    import tensorflow as tf
 
 
 def _main():
 
-    parser = argparse.ArgumentParser(description="Generate random test input for ONNX model")
-    parser.add_argument("--model", required=True, help="ONNX model file")
+    parser = argparse.ArgumentParser(
+        description="Generate random test input for Qualcomm SNPE model")
+
+    parser.add_argument("--model", required=True, help="TFLite model file")
     parser.add_argument("--samples", type=int, default=1, help="Number of samples to generate")
     parser.add_argument("--output", required=True, help="Output data directory")
     parser.add_argument("--txt", required=True,
@@ -33,14 +39,15 @@ def _main():
 
     args = parser.parse_args()
 
+    interpreter = tf.lite.Interpreter(args.model)
+    interpreter.allocate_tensors()
+
     if not os.path.exists(args.output):
         os.mkdir(args.output)
 
-    sess = onnxruntime.InferenceSession(args.model)
-
     with open(args.txt, "w", newline="\n") as txt_file:
 
-        # txt_file.write("#%s\n" % " ".join(n.name for n in sess.get_outputs()))
+        # txt_file.write("#%s\n" % " ".join(n["name"] for n in interpreter.get_output_details()))
 
         for n_sample in range(args.samples):
 
@@ -49,12 +56,11 @@ def _main():
                 os.mkdir(out_dir)
 
             snpe_inputs = []
-            for (i, inp) in enumerate(sess.get_inputs()):
-                # FIXME: use correct type based on inp.type instead of np.float32
-                data = np.float32(np.random.randn(*inp.shape))
+            for (i, inp) in enumerate(interpreter.get_input_details()):
+                data = inp["dtype"](np.random.randn(*inp["shape"]))
                 path = "%s/input_%03d.raw" % (out_dir, i)
-                print("%s: %s %s/%s %s" % (path, inp.name, inp.type, data.dtype, data.shape))
-                snpe_inputs.append("%s:=%s" % (inp.name, path))
+                print("%s: %s %s %s" % (path, inp["name"], data.dtype, data.shape))
+                snpe_inputs.append("%s:=%s" % (inp["name"], path))
                 with open(path, 'wb') as binary_file:
                     binary_file.write(data.tobytes())
 
